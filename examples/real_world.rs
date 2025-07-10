@@ -80,7 +80,7 @@ async fn error_handling_example() {
 
     let mut subscriber = bus.subscribe("nonexistent_topic");
 
-            match subscriber.try_get_message() {
+    match subscriber.try_get_message() {
         Ok(Some(msg)) => println!("Received: {msg}"),
         Ok(None) => println!("No new message"),
         Err(e) if e.is_empty() => println!("No message available"),
@@ -102,7 +102,12 @@ async fn multiple_subscribers_example() {
     let email_handle = tokio::spawn(async move {
         let mut count = 0;
         loop {
-            match timeout(Duration::from_millis(100), email_notifier.wait_for_message()).await {
+            match timeout(
+                Duration::from_millis(100),
+                email_notifier.wait_for_message(),
+            )
+            .await
+            {
                 Ok(Some(news)) => {
                     println!("📧 Email notification: {news}");
                     count += 1;

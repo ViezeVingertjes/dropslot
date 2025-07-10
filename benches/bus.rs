@@ -25,14 +25,14 @@ fn bench_bus_creation(c: &mut Criterion) {
 
     c.bench_function("bus_high_throughput", |b| {
         b.iter(|| {
-            let bus = Bus::<String>::high_throughput();
+            let bus = Bus::<String>::with_capacity(64);
             black_box(bus);
         })
     });
 
     c.bench_function("bus_low_latency", |b| {
         b.iter(|| {
-            let bus = Bus::<String>::low_latency();
+            let bus = Bus::<String>::with_capacity(8);
             black_box(bus);
         })
     });

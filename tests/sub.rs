@@ -87,7 +87,10 @@ async fn test_wait_for_message_with_transformation() {
 
     topic.publish("hello".to_string());
 
-    let length = subscriber.wait_for_message_and_apply(|msg| msg.len()).await.unwrap();
+    let length = subscriber
+        .wait_for_message_and_apply(|msg| msg.len())
+        .await
+        .unwrap();
     assert_eq!(length, 5);
 }
 

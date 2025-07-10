@@ -11,7 +11,7 @@ async fn main() {
 async fn high_throughput_example() {
     println!("=== High Throughput Performance ===");
 
-    let bus = Bus::<Bytes>::high_throughput();
+    let bus = Bus::<Bytes>::with_capacity(64);
 
     let topic = bus.topic("high_freq_data");
     let mut subscriber = topic.subscribe();
@@ -22,7 +22,7 @@ async fn high_throughput_example() {
     }
     let elapsed = start.elapsed();
 
-            if let Some(message) = subscriber.wait_for_message().await {
+    if let Some(message) = subscriber.wait_for_message().await {
         println!("Last message: {message:?}");
     }
 

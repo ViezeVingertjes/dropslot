@@ -148,11 +148,12 @@ where
     /// assert_eq!(length, Some(5));
     /// ```
     #[inline]
-    pub fn try_get_message_and_apply<R>(&mut self, f: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
+    pub fn try_get_message_and_apply<R>(
+        &mut self,
+        f: impl FnOnce(&T) -> R,
+    ) -> Result<Option<R>, BusError> {
         self.try_get_message_impl(f)
     }
-
-
 
     /// Gets the latest message without consuming it.
     ///
@@ -241,7 +242,10 @@ where
     }
 
     #[inline]
-    fn try_get_message_impl<R>(&mut self, transform: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
+    fn try_get_message_impl<R>(
+        &mut self,
+        transform: impl FnOnce(&T) -> R,
+    ) -> Result<Option<R>, BusError> {
         match self.get_or_refresh_topic() {
             Some(topic) => {
                 let current_version = topic.get_current_version();

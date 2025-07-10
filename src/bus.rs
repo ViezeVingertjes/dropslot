@@ -55,38 +55,6 @@ where
         }
     }
 
-    /// Creates a Bus optimized for high throughput scenarios.
-    ///
-    /// This configuration uses a larger initial capacity (64) to reduce
-    /// hash map resizing overhead when dealing with many topics.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::high_throughput();
-    /// // Optimized for scenarios with many topics
-    /// ```
-    #[inline]
-    pub fn high_throughput() -> Self {
-        Self::with_capacity(64)
-    }
-
-    /// Creates a Bus optimized for low latency scenarios.
-    ///
-    /// This configuration uses a smaller initial capacity (8) to minimize
-    /// memory usage and improve cache locality for applications with few topics.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::low_latency();
-    /// // Optimized for scenarios with few topics
-    /// ```
-    #[inline]
-    pub fn low_latency() -> Self {
-        Self::with_capacity(8)
-    }
-
     /// Gets existing topic or creates a new one.
     ///
     /// # Examples

@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BusError::try_recv_empty()` → `BusError::message_queue_empty()`
 - `BusError::try_recv_disconnected()` → `BusError::topic_disconnected()`
 
+**BREAKING CHANGES**: Removed convenience methods that duplicated `with_capacity()`:
+
+- `Bus<T>::high_throughput()` → use `Bus<T>::with_capacity(64)` instead
+- `Bus<T>::low_latency()` → use `Bus<T>::with_capacity(8)` instead
+
 ### Removed
 **BREAKING CHANGES**: Removed alias methods:
 

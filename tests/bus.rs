@@ -16,13 +16,13 @@ fn test_bus_with_capacity() {
 
 #[test]
 fn test_bus_high_throughput() {
-    let bus = Bus::<String>::high_throughput();
+    let bus = Bus::<String>::with_capacity(64);
     assert_eq!(bus.topic_count(), 0);
 }
 
 #[test]
 fn test_bus_low_latency() {
-    let bus = Bus::<String>::low_latency();
+    let bus = Bus::<String>::with_capacity(8);
     assert_eq!(bus.topic_count(), 0);
 }
 

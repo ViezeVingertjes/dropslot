@@ -218,7 +218,7 @@ fn bench_performance_configurations(c: &mut Criterion) {
     c.bench_function("high_throughput_config", |b| {
         b.iter(|| {
             _rt.block_on(async {
-                let bus = Bus::<String>::high_throughput();
+                let bus = Bus::<String>::with_capacity(64);
                 let topic = bus.topic("test");
                 let mut subscriber = topic.subscribe();
 
@@ -233,7 +233,7 @@ fn bench_performance_configurations(c: &mut Criterion) {
     c.bench_function("low_latency_config", |b| {
         b.iter(|| {
             _rt.block_on(async {
-                let bus = Bus::<String>::low_latency();
+                let bus = Bus::<String>::with_capacity(8);
                 let topic = bus.topic("test");
                 let mut subscriber = topic.subscribe();
 

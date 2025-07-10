@@ -95,7 +95,10 @@ fn bench_async_wait_for_message_operations(c: &mut Criterion) {
 
                 topic.publish("hello world".to_string());
 
-                let length = subscriber.wait_for_message_and_apply(|msg| msg.len()).await.unwrap();
+                let length = subscriber
+                    .wait_for_message_and_apply(|msg| msg.len())
+                    .await
+                    .unwrap();
                 black_box(length);
             })
         })

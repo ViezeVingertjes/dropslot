@@ -36,11 +36,11 @@
 //! use dropslot::Bus;
 //! use bytes::Bytes;
 //!
-//! // High throughput: larger initial capacity
-//! let ht_bus = Bus::<Bytes>::high_throughput();
+//! // High throughput: larger initial capacity (optimized for many topics)
+//! let ht_bus = Bus::<Bytes>::with_capacity(64);
 //!
-//! // Low latency: smaller initial capacity
-//! let ll_bus = Bus::<Bytes>::low_latency();
+//! // Low latency: smaller initial capacity (optimized for few topics)
+//! let ll_bus = Bus::<Bytes>::with_capacity(8);
 //! ```
 //!
 //! ## Zero-Copy Bytes

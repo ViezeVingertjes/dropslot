@@ -139,8 +139,8 @@ async fn test_bytes_zero_copy() {
 
 #[tokio::test]
 async fn test_performance_configurations() {
-    let _high_throughput = Bus::<String>::high_throughput();
-    let _low_latency = Bus::<String>::low_latency();
+    let _high_throughput = Bus::<String>::with_capacity(64);
+    let _low_latency = Bus::<String>::with_capacity(8);
     let _custom_capacity = Bus::<String>::with_capacity(256);
 
     // Just ensure they can be created without panicking

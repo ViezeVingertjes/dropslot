@@ -1,4 +1,4 @@
-# DropSlot 🏗️
+# DropSlot
 
 [![Crates.io](https://img.shields.io/crates/v/dropslot.svg)](https://crates.io/crates/dropslot)
 [![Documentation](https://docs.rs/dropslot/badge.svg)](https://docs.rs/dropslot)
@@ -55,11 +55,11 @@ async fn main() {
 use dropslot::Bus;
 use bytes::Bytes;
 
-// High throughput: optimized for many messages
-let ht_bus = Bus::<Bytes>::high_throughput();
+// High throughput: optimized for many topics (large capacity)
+let ht_bus = Bus::<Bytes>::with_capacity(64);
 
-// Low latency: optimized for speed
-let ll_bus = Bus::<Bytes>::low_latency();
+// Low latency: optimized for few topics (small capacity)
+let ll_bus = Bus::<Bytes>::with_capacity(8);
 
 // Custom capacity
 let custom_bus = Bus::<Bytes>::with_capacity(128);
