@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 #[tokio::main]
 async fn main() {

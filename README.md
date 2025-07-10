@@ -22,13 +22,13 @@ Add dropslot to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-dropslot = "0.1"
+dropslot = "0.2"
 ```
 
 ### Basic Usage
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use bytes::Bytes;
 
 #[tokio::main]
@@ -52,7 +52,7 @@ async fn main() {
 ### Performance Configurations
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use bytes::Bytes;
 
 // High throughput: optimized for many topics (large capacity)
@@ -112,7 +112,7 @@ DropSlot is designed for high-performance scenarios and delivers exceptional per
 ### Custom Message Types
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -135,7 +135,7 @@ topic.publish(event);
 ### Error Handling
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 let topic = bus.topic("events");
@@ -153,7 +153,7 @@ match subscriber.try_get_message() {
 ### Multiple Subscribers
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 let topic = bus.topic("notifications");
@@ -170,7 +170,7 @@ topic.publish("Important update!".to_string());
 ### Topic Management
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 
@@ -215,6 +215,14 @@ DropSlot is perfect for:
 
 ## 🛠️ Features
 
+### Prelude
+
+For convenience, you can import all commonly used types with the prelude:
+
+```rust
+use dropslot::prelude::*; // Imports Bus, Topic, Sub, and BusError
+```
+
 ### Default Features
 
 - `bytes` - Zero-copy operations for `bytes::Bytes`
@@ -227,7 +235,7 @@ Enable features in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-dropslot = { version = "0.1", features = ["serde"] }
+dropslot = { version = "0.2", features = ["serde"] }
 ```
 
 ## 📈 Benchmarks

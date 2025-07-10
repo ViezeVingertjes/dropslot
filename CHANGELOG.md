@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Bus<T>::high_throughput()` → use `Bus<T>::with_capacity(64)` instead
 - `Bus<T>::low_latency()` → use `Bus<T>::with_capacity(8)` instead
 
+### Added
+- **Prelude module**: Added `dropslot::prelude` for convenient importing of common types:
+  ```rust
+  use dropslot::prelude::*; // Imports Bus, Topic, Sub, and BusError
+  ```
+
 ### Removed
 **BREAKING CHANGES**: Removed alias methods:
 

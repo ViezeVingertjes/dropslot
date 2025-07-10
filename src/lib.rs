@@ -13,7 +13,7 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
 //! # #[tokio::main]
@@ -33,7 +33,7 @@
 //! ## Performance Configurations
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
 //! // High throughput: larger initial capacity (optimized for many topics)
@@ -46,7 +46,7 @@
 //! ## Zero-Copy Bytes
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
 //! let bus = Bus::<Bytes>::new();
@@ -56,6 +56,7 @@
 
 pub mod bus;
 pub mod error;
+pub mod prelude;
 pub mod sub;
 pub mod topic;
 
