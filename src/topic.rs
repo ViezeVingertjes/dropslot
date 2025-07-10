@@ -126,7 +126,7 @@ where
     pub(crate) fn increment_version(&self) {
         let mut current = self.version.load(std::sync::atomic::Ordering::Relaxed);
         loop {
-            if current >= u64::MAX {
+            if current == u64::MAX {
                 break;
             }
 
@@ -208,22 +208,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_version_overflow_protection() {
-        let topic = Topic::<String>::new("test".to_string());
-
-        topic.set_version_for_test(u64::MAX);
-
-        let version_before = topic.get_current_version();
-        assert_eq!(version_before, u64::MAX);
-
-        topic.increment_version();
-
-        let version_after = topic.get_current_version();
-        assert_eq!(version_after, u64::MAX);
-    }
-
-    #[test]
-    fn test_normal_version_increment() {
+    fn test_version_increment_with_overflow_protection() {
         let topic = Topic::<String>::new("test".to_string());
 
         let version_before = topic.get_current_version();
@@ -233,6 +218,16 @@ mod tests {
 
         let version_after = topic.get_current_version();
         assert_eq!(version_after, 1);
+
+        topic.set_version_for_test(u64::MAX);
+
+        let version_at_max = topic.get_current_version();
+        assert_eq!(version_at_max, u64::MAX);
+
+        topic.increment_version();
+
+        let version_after_max = topic.get_current_version();
+        assert_eq!(version_after_max, u64::MAX);
     }
 
     #[test]

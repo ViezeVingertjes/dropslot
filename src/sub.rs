@@ -297,9 +297,7 @@ impl<T> PartialEq for Sub<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::topic::Topic;
-    use std::sync::Arc;
-    use tokio::sync::watch;
+    use super::*;
 
     #[test]
     fn test_version_comparison_overflow_protection() {
@@ -336,26 +334,9 @@ mod tests {
 
         let result = subscriber.wait_for_message().await;
         assert!(result.is_none());
-    }
 
-    #[tokio::test]
-    async fn test_wait_for_message_with_transform_disconnected() {
-        let (sender, receiver) = watch::channel(None::<String>);
-        let topic = Arc::new(Topic::<String>::new("test".to_string()));
-        let weak_topic = Arc::downgrade(&topic);
-
-        let mut subscriber = crate::sub::Sub::new(
-            receiver,
-            "test".to_string().into_boxed_str(),
-            weak_topic,
-            0,
-            None,
-        );
-
-        drop(sender);
-
-        let result = subscriber.wait_for_message_and_apply(|msg| msg.len()).await;
-        assert!(result.is_none());
+        let result_with_transform = subscriber.wait_for_message_and_apply(|msg| msg.len()).await;
+        assert!(result_with_transform.is_none());
     }
 
     #[test]
