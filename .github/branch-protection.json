@@ -1,0 +1,29 @@
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Test (stable)",
+      "Test (beta)",
+      "Test (nightly)", 
+      "Clippy",
+      "Rustfmt",
+      "Coverage",
+      "Benchmark",
+      "Cross Platform (ubuntu-latest)",
+      "Cross Platform (windows-latest)",
+      "Cross Platform (macos-latest)"
+    ]
+  },
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": true,
+    "require_last_push_approval": true
+  },
+  "enforce_admins": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_linear_history": false,
+  "required_conversation_resolution": true,
+  "restrictions": null
+}

@@ -1,0 +1,70 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# PGO (Profile-Guided Optimization) data
+pgo-data/
+profiles/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+*.exe
+*.pdb
+*.dll
+*.lib
+*.exp
+*.ilk
+*.pdb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Coverage reports
+tarpaulin-report.html
+cobertura.xml
+
+# Benchmark results
+criterion/
+
+# Documentation
+/target/doc/
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Local development
+.local/
+
+# Test artifacts
+*.profraw
+*.profdata
+
+# Flamegraph
+flamegraph.svg
+perf.data*

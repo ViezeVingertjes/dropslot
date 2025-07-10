@@ -1,0 +1,26 @@
+# CODEOWNERS file for DropSlot
+# This file defines who should review code changes in different parts of the repository
+
+# Global ownership - all files require review from repository maintainers
+* @ViezeVingertjes
+
+# Core library code - requires careful review
+/src/ @ViezeVingertjes
+
+# CI/CD configuration - requires infrastructure knowledge
+/.github/ @ViezeVingertjes
+/Cargo.toml @ViezeVingertjes
+/.cargo/ @ViezeVingertjes
+
+# Documentation - can be reviewed by anyone with write access
+/README.md @ViezeVingertjes
+/CHANGELOG.md @ViezeVingertjes
+/CONTRIBUTING.md @ViezeVingertjes
+
+# Examples and tests - can be reviewed by maintainers
+/examples/ @ViezeVingertjes
+/tests/ @ViezeVingertjes
+/benches/ @ViezeVingertjes
+
+# License files - require careful review
+/LICENSE* @ViezeVingertjes

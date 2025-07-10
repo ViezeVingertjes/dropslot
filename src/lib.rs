@@ -1,0 +1,65 @@
+//! # DropSlot
+//!
+//! High-performance publish-subscribe library with latest-only delivery semantics.
+//!
+//! ## Key Features
+//!
+//! - **Latest-only delivery**: Subscribers receive the most recent message only
+//! - **Zero-copy operations**: Optimized for `bytes::Bytes` and other types
+//! - **String-keyed topics**: Simple string-based topic naming
+//! - **High performance**: Optimized data structures and memory layout
+//! - **Async/sync APIs**: Both `async` and non-blocking sync operations
+//!
+//! ## Quick Start
+//!
+//! ```rust
+//! use dropslot::Bus;
+//! use bytes::Bytes;
+//!
+//! # #[tokio::main]
+//! # async fn main() {
+//! let bus = Bus::<Bytes>::new();
+//! let topic = bus.topic("events");
+//! let mut subscriber = topic.subscribe();
+//!
+//! topic.publish(Bytes::from("Hello, World!"));
+//!
+//! if let Some(message) = subscriber.next().await {
+//!     println!("Received: {:?}", message);
+//! }
+//! # }
+//! ```
+//!
+//! ## Performance Configurations
+//!
+//! ```rust
+//! use dropslot::Bus;
+//! use bytes::Bytes;
+//!
+//! // High throughput: larger initial capacity
+//! let ht_bus = Bus::<Bytes>::high_throughput();
+//!
+//! // Low latency: smaller initial capacity
+//! let ll_bus = Bus::<Bytes>::low_latency();
+//! ```
+//!
+//! ## Zero-Copy Bytes
+//!
+//! ```rust
+//! use dropslot::Bus;
+//! use bytes::Bytes;
+//!
+//! let bus = Bus::<Bytes>::new();
+//! let topic = bus.topic("data");
+//! topic.publish(Bytes::from("zero-copy message"));
+//! ```
+
+pub mod bus;
+pub mod error;
+pub mod sub;
+pub mod topic;
+
+pub use bus::Bus;
+pub use error::BusError;
+pub use sub::Sub;
+pub use topic::Topic;

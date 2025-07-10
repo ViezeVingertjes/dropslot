@@ -1,0 +1,22 @@
+[build]
+rustflags = [
+    "-C", "target-cpu=native",
+]
+
+[target.'cfg(all(target_arch = "x86_64", target_os = "linux"))']
+rustflags = [
+    "-C", "link-arg=-fuse-ld=lld",
+]
+
+[target.'cfg(all(target_arch = "x86_64", target_os = "windows"))']
+rustflags = [
+    "-C", "link-arg=/SUBSYSTEM:CONSOLE",
+]
+
+[target.'cfg(all(target_arch = "x86_64", target_os = "macos"))']
+rustflags = [
+    "-C", "link-arg=-fuse-ld=lld",
+]
+
+[unstable]
+sparse-registry = true 

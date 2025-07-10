@@ -1,0 +1,79 @@
+[package]
+name = "dropslot"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["DropSlot Contributors"]
+description = "A high-performance publish-subscribe library with latest-only delivery semantics"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ViezeVingertjes/dropslot"
+homepage = "https://github.com/ViezeVingertjes/dropslot"
+documentation = "https://docs.rs/dropslot"
+readme = "README.md"
+keywords = ["pubsub", "async", "tokio", "messaging", "performance"]
+categories = ["asynchronous", "concurrency"]
+exclude = ["target/*", ".git/*", "coverage/*"]
+
+[lib]
+name = "dropslot"
+crate-type = ["lib"]
+
+[dependencies]
+tokio = { version = "1.46", features = ["sync", "rt", "rt-multi-thread", "macros", "time"] }
+dashmap = "6.1"
+ahash = "0.8"
+bytes = { version = "1.8", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.6", features = ["html_reports"] }
+fastrand = "2.3.0"
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[[example]]
+name = "high_performance"
+path = "examples/high_performance.rs"
+
+[[example]]
+name = "real_world"
+path = "examples/real_world.rs"
+required-features = ["serde"]
+
+[[bench]]
+name = "lib"
+harness = false
+
+[[bench]]
+name = "bus"
+harness = false
+
+[[bench]]
+name = "topic"
+harness = false
+
+[[bench]]
+name = "sub"
+harness = false
+
+[[bench]]
+name = "error"
+harness = false
+
+[features]
+default = ["bytes"]
+bytes = ["dep:bytes"]
+serde = ["dep:serde"]
+
+[profile.release]
+lto = "thin"           # Link Time Optimization for cross-crate inlining
+codegen-units = 1      # Better optimization at cost of compile time
+panic = "abort"        # Smaller binaries, faster execution
+opt-level = 3          # Maximum optimization
+
+[profile.bench]
+debug = true
+lto = "thin"           # Keep LTO for benchmarks too
+codegen-units = 1
