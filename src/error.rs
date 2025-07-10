@@ -11,16 +11,16 @@ pub enum BusError {
 }
 
 impl BusError {
-    /// Creates a try receive error for empty state.
-    pub fn try_recv_empty() -> Self {
+    /// Creates an error for when the message queue is empty.
+    pub fn message_queue_empty() -> Self {
         BusError::TryRecv {
             empty: true,
             disconnected: false,
         }
     }
 
-    /// Creates a try receive error for disconnected state.
-    pub fn try_recv_disconnected() -> Self {
+    /// Creates an error for when the topic has been disconnected.
+    pub fn topic_disconnected() -> Self {
         BusError::TryRecv {
             empty: false,
             disconnected: true,

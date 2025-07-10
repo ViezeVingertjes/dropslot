@@ -46,12 +46,12 @@ where
     /// let mut subscriber = topic.subscribe();
     ///
     /// topic.publish(Bytes::from("Hello"));
-    /// if let Some(message) = subscriber.next().await {
+    /// if let Some(message) = subscriber.wait_for_message().await {
     ///     println!("Received: {:?}", message);
     /// }
     /// # }
     /// ```
-    pub async fn next(&mut self) -> Option<T> {
+    pub async fn wait_for_message(&mut self) -> Option<T> {
         loop {
             if self.receiver.changed().await.is_err() {
                 return None;
@@ -83,11 +83,11 @@ where
     ///
     /// topic.publish("hello world".to_string());
     ///
-    /// let length = subscriber.next_with(|msg| msg.len()).await;
+    /// let length = subscriber.wait_for_message_and_apply(|msg| msg.len()).await;
     /// assert_eq!(length, Some(11));
     /// # }
     /// ```
-    pub async fn next_with<R>(&mut self, f: impl FnOnce(&T) -> R) -> Option<R> {
+    pub async fn wait_for_message_and_apply<R>(&mut self, f: impl FnOnce(&T) -> R) -> Option<R> {
         loop {
             if self.receiver.changed().await.is_err() {
                 return None;
@@ -103,8 +103,8 @@ where
     ///
     /// Returns `Ok(Some(message))` if a new message is available,
     /// `Ok(None)` if no new message since last check,
-    /// `Err(BusError::try_recv_empty())` if no message available,
-    /// `Err(BusError::try_recv_disconnected())` if topic is dropped.
+    /// `Err(BusError::message_queue_empty())` if no message available,
+    /// `Err(BusError::topic_disconnected())` if topic is dropped.
     ///
     /// # Examples
     /// ```
@@ -114,22 +114,22 @@ where
     /// let mut subscriber = topic.subscribe();
     ///
     /// // No message published yet
-    /// assert!(subscriber.try_next().is_err());
+    /// assert!(subscriber.try_get_message().is_err());
     ///
     /// topic.publish("Hello".to_string());
-    /// assert_eq!(subscriber.try_next().unwrap(), Some("Hello".to_string()));
+    /// assert_eq!(subscriber.try_get_message().unwrap(), Some("Hello".to_string()));
     ///
     /// // No new message since last check
-    /// assert!(subscriber.try_next().is_err());
+    /// assert!(subscriber.try_get_message().is_err());
     /// ```
     #[inline]
-    pub fn try_next(&mut self) -> Result<Option<T>, BusError> {
-        self.try_recv_impl(|msg| msg.clone())
+    pub fn try_get_message(&mut self) -> Result<Option<T>, BusError> {
+        self.try_get_message_impl(|msg| msg.clone())
     }
 
     /// Attempts to receive and transform a message without blocking.
     ///
-    /// This method is similar to `try_next` but applies a transformation
+    /// This method is similar to `try_get_message` but applies a transformation
     /// function to the message before returning it.
     ///
     /// # Arguments
@@ -144,111 +144,15 @@ where
     ///
     /// topic.publish("hello".to_string());
     ///
-    /// let length = subscriber.try_next_with(|msg| msg.len()).unwrap();
+    /// let length = subscriber.try_get_message_and_apply(|msg| msg.len()).unwrap();
     /// assert_eq!(length, Some(5));
     /// ```
     #[inline]
-    pub fn try_next_with<R>(&mut self, f: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
-        self.try_recv_impl(f)
+    pub fn try_get_message_and_apply<R>(&mut self, f: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
+        self.try_get_message_impl(f)
     }
 
-    /// Attempts to receive a message without blocking (alias for try_next).
-    ///
-    /// This method is identical to `try_next` but provides a more familiar
-    /// naming convention for users coming from other messaging libraries.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::new();
-    /// let topic = bus.topic("events");
-    /// let mut subscriber = topic.subscribe();
-    ///
-    /// topic.publish("Hello".to_string());
-    /// assert_eq!(subscriber.try_recv().unwrap(), Some("Hello".to_string()));
-    /// ```
-    #[inline]
-    pub fn try_recv(&mut self) -> Result<Option<T>, BusError> {
-        self.try_next()
-    }
 
-    /// Attempts to receive and transform a message without blocking (alias for try_next_with).
-    ///
-    /// This method is identical to `try_next_with` but provides a more familiar
-    /// naming convention.
-    ///
-    /// # Arguments
-    /// * `f` - Function to apply to the message
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::new();
-    /// let topic = bus.topic("events");
-    /// let mut subscriber = topic.subscribe();
-    ///
-    /// topic.publish("hello".to_string());
-    ///
-    /// let length = subscriber.try_recv_with(|msg| msg.len()).unwrap();
-    /// assert_eq!(length, Some(5));
-    /// ```
-    #[inline]
-    pub fn try_recv_with<R>(&mut self, f: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
-        self.try_next_with(f)
-    }
-
-    /// Waits for the next message asynchronously (alias for next).
-    ///
-    /// This method is identical to `next` but provides a more familiar
-    /// naming convention for users coming from other messaging libraries.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// # #[tokio::main]
-    /// # async fn main() {
-    /// let bus = Bus::<String>::new();
-    /// let topic = bus.topic("events");
-    /// let mut subscriber = topic.subscribe();
-    ///
-    /// topic.publish("Hello".to_string());
-    ///
-    /// let message = subscriber.recv().await;
-    /// assert_eq!(message, Some("Hello".to_string()));
-    /// # }
-    /// ```
-    #[inline]
-    pub async fn recv(&mut self) -> Option<T> {
-        self.next().await
-    }
-
-    /// Waits for a message and applies a transformation (alias for next_with).
-    ///
-    /// This method is identical to `next_with` but provides a more familiar
-    /// naming convention.
-    ///
-    /// # Arguments
-    /// * `f` - Function to apply to the message
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// # #[tokio::main]
-    /// # async fn main() {
-    /// let bus = Bus::<String>::new();
-    /// let topic = bus.topic("events");
-    /// let mut subscriber = topic.subscribe();
-    ///
-    /// topic.publish("hello".to_string());
-    ///
-    /// let length = subscriber.recv_with(|msg| msg.len()).await;
-    /// assert_eq!(length, Some(5));
-    /// # }
-    /// ```
-    #[inline]
-    pub async fn recv_with<R>(&mut self, f: impl FnOnce(&T) -> R) -> Option<R> {
-        self.next_with(f).await
-    }
 
     /// Gets the latest message without consuming it.
     ///
@@ -337,7 +241,7 @@ where
     }
 
     #[inline]
-    fn try_recv_impl<R>(&mut self, transform: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
+    fn try_get_message_impl<R>(&mut self, transform: impl FnOnce(&T) -> R) -> Result<Option<R>, BusError> {
         match self.get_or_refresh_topic() {
             Some(topic) => {
                 let current_version = topic.get_current_version();
@@ -348,10 +252,10 @@ where
                     let borrowed = self.receiver.borrow();
                     Ok(borrowed.as_ref().map(transform))
                 } else {
-                    Err(BusError::try_recv_empty())
+                    Err(BusError::message_queue_empty())
                 }
             }
-            None => Err(BusError::try_recv_disconnected()),
+            None => Err(BusError::topic_disconnected()),
         }
     }
 
@@ -404,14 +308,14 @@ mod tests {
 
         topic.publish("test message".to_string());
 
-        let result = subscriber.try_recv();
+        let result = subscriber.try_get_message();
         assert!(result.is_ok());
         let message = result.unwrap();
         assert_eq!(message, Some("test message".to_string()));
     }
 
     #[tokio::test]
-    async fn test_next_with_disconnected_topic() {
+    async fn test_wait_for_message_with_disconnected_topic() {
         let (sender, receiver) = watch::channel(None::<String>);
         let topic = Arc::new(Topic::<String>::new("test".to_string()));
         let weak_topic = Arc::downgrade(&topic);
@@ -426,12 +330,12 @@ mod tests {
 
         drop(sender);
 
-        let result = subscriber.next().await;
+        let result = subscriber.wait_for_message().await;
         assert!(result.is_none());
     }
 
     #[tokio::test]
-    async fn test_next_with_transform_disconnected() {
+    async fn test_wait_for_message_with_transform_disconnected() {
         let (sender, receiver) = watch::channel(None::<String>);
         let topic = Arc::new(Topic::<String>::new("test".to_string()));
         let weak_topic = Arc::downgrade(&topic);
@@ -446,7 +350,7 @@ mod tests {
 
         drop(sender);
 
-        let result = subscriber.next_with(|msg| msg.len()).await;
+        let result = subscriber.wait_for_message_and_apply(|msg| msg.len()).await;
         assert!(result.is_none());
     }
 

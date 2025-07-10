@@ -30,7 +30,7 @@ async fn event_processing_example() {
         println!("Event processor started, waiting for events...");
         let mut count = 0;
         loop {
-            match timeout(Duration::from_millis(100), processor.next()).await {
+            match timeout(Duration::from_millis(100), processor.wait_for_message()).await {
                 Ok(Some(event)) => {
                     println!("Processing event: {} - {}", event.id, event.event_type);
                     count += 1;
@@ -80,7 +80,7 @@ async fn error_handling_example() {
 
     let mut subscriber = bus.subscribe("nonexistent_topic");
 
-    match subscriber.try_next() {
+            match subscriber.try_get_message() {
         Ok(Some(msg)) => println!("Received: {msg}"),
         Ok(None) => println!("No new message"),
         Err(e) if e.is_empty() => println!("No message available"),
@@ -102,7 +102,7 @@ async fn multiple_subscribers_example() {
     let email_handle = tokio::spawn(async move {
         let mut count = 0;
         loop {
-            match timeout(Duration::from_millis(100), email_notifier.next()).await {
+            match timeout(Duration::from_millis(100), email_notifier.wait_for_message()).await {
                 Ok(Some(news)) => {
                     println!("📧 Email notification: {news}");
                     count += 1;
@@ -123,7 +123,7 @@ async fn multiple_subscribers_example() {
     let push_handle = tokio::spawn(async move {
         let mut count = 0;
         loop {
-            match timeout(Duration::from_millis(100), push_notifier.next()).await {
+            match timeout(Duration::from_millis(100), push_notifier.wait_for_message()).await {
                 Ok(Some(news)) => {
                     println!("📱 Push notification: {news}");
                     count += 1;
@@ -144,7 +144,7 @@ async fn multiple_subscribers_example() {
     let analytics_handle = tokio::spawn(async move {
         let mut count = 0;
         loop {
-            match timeout(Duration::from_millis(100), analytics.next()).await {
+            match timeout(Duration::from_millis(100), analytics.wait_for_message()).await {
                 Ok(Some(news)) => {
                     println!("📊 Analytics recorded: {news}");
                     count += 1;

@@ -22,7 +22,7 @@ async fn high_throughput_example() {
     }
     let elapsed = start.elapsed();
 
-    if let Some(message) = subscriber.next().await {
+            if let Some(message) = subscriber.wait_for_message().await {
         println!("Last message: {message:?}");
     }
 

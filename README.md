@@ -43,7 +43,7 @@ async fn main() {
     topic.publish(Bytes::from("Hello, World!"));
     
     // Receive the latest message
-    if let Some(message) = subscriber.next().await {
+    if let Some(message) = subscriber.wait_for_message().await {
         println!("Received: {:?}", message);
     }
 }
@@ -141,7 +141,7 @@ let bus = Bus::<String>::new();
 let topic = bus.topic("events");
 let mut subscriber = topic.subscribe();
 
-match subscriber.try_next() {
+match subscriber.try_get_message() {
     Ok(Some(msg)) => println!("Received: {}", msg),
     Ok(None) => println!("No new message"),
     Err(e) if e.is_empty() => println!("No message available"),

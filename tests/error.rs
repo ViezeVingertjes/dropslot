@@ -2,16 +2,16 @@ use dropslot::BusError;
 use std::error::Error;
 
 #[test]
-fn test_try_recv_empty_error() {
-    let error = BusError::try_recv_empty();
+fn test_try_get_message_empty_error() {
+    let error = BusError::message_queue_empty();
 
     assert!(error.is_empty());
     assert!(!error.is_disconnected());
 }
 
 #[test]
-fn test_try_recv_disconnected_error() {
-    let error = BusError::try_recv_disconnected();
+fn test_try_get_message_disconnected_error() {
+    let error = BusError::topic_disconnected();
 
     assert!(!error.is_empty());
     assert!(error.is_disconnected());
@@ -19,7 +19,7 @@ fn test_try_recv_disconnected_error() {
 
 #[test]
 fn test_error_display_empty() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
     let display = error.to_string();
 
     assert!(display.contains("No message available"));
@@ -27,7 +27,7 @@ fn test_error_display_empty() {
 
 #[test]
 fn test_error_display_disconnected() {
-    let error = BusError::try_recv_disconnected();
+    let error = BusError::topic_disconnected();
     let display = error.to_string();
 
     assert!(display.contains("Topic disconnected"));
@@ -35,7 +35,7 @@ fn test_error_display_disconnected() {
 
 #[test]
 fn test_error_debug_format() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
     let debug = format!("{error:?}");
 
     assert!(debug.contains("TryRecv"));
@@ -43,23 +43,23 @@ fn test_error_debug_format() {
 
 #[test]
 fn test_error_equality() {
-    let error1 = BusError::try_recv_empty();
-    let error2 = BusError::try_recv_empty();
+    let error1 = BusError::message_queue_empty();
+    let error2 = BusError::message_queue_empty();
 
     assert_eq!(error1, error2);
 }
 
 #[test]
 fn test_error_inequality() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     assert_ne!(empty_error, disconnected_error);
 }
 
 #[test]
 fn test_error_clone() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
     let cloned = error.clone();
 
     assert_eq!(error, cloned);
@@ -67,7 +67,7 @@ fn test_error_clone() {
 
 #[test]
 fn test_error_traits() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
 
     // Test that it implements std::error::Error trait
     let _: &dyn Error = &error;
@@ -79,8 +79,8 @@ fn test_error_traits() {
 
 #[test]
 fn test_error_is_methods_consistency() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     // Empty error should only be empty, not disconnected
     assert!(empty_error.is_empty());
@@ -93,7 +93,7 @@ fn test_error_is_methods_consistency() {
 
 #[test]
 fn test_error_source() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
 
     // BusError doesn't have a source error
     assert!(error.source().is_none());
@@ -101,8 +101,8 @@ fn test_error_source() {
 
 #[test]
 fn test_error_mutually_exclusive_states() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     // An error cannot be both empty and disconnected
     assert!(!(empty_error.is_empty() && empty_error.is_disconnected()));
@@ -110,7 +110,7 @@ fn test_error_mutually_exclusive_states() {
 }
 
 #[test]
-fn test_error_from_try_recv_operations() {
+fn test_error_from_try_get_message_operations() {
     use dropslot::Bus;
 
     let bus = Bus::<String>::new();
@@ -118,7 +118,7 @@ fn test_error_from_try_recv_operations() {
     let mut subscriber = topic.subscribe();
 
     // Should get empty error when no message
-    let result = subscriber.try_next();
+    let result = subscriber.try_get_message();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert!(error.is_empty());
@@ -138,7 +138,7 @@ fn test_error_from_disconnected_topic() {
     let removed_count = bus.remove_topic("disconnect_test");
     assert_eq!(removed_count, Some(1));
 
-    let result = subscriber.try_next();
+    let result = subscriber.try_get_message();
     assert!(result.is_err());
     let error = result.unwrap_err();
     assert!(!error.is_empty());
@@ -147,8 +147,8 @@ fn test_error_from_disconnected_topic() {
 
 #[test]
 fn test_error_match_patterns() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     // Test pattern matching
     match empty_error {
@@ -174,8 +174,8 @@ fn test_error_match_patterns() {
 
 #[test]
 fn test_error_display_format_consistency() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     let empty_display = format!("{empty_error}");
     let disconnected_display = format!("{disconnected_error}");
@@ -188,8 +188,8 @@ fn test_error_display_format_consistency() {
 #[test]
 fn test_error_creation_methods() {
     // Test that the creation methods return the correct error types
-    let empty = BusError::try_recv_empty();
-    let disconnected = BusError::try_recv_disconnected();
+    let empty = BusError::message_queue_empty();
+    let disconnected = BusError::topic_disconnected();
 
     let BusError::TryRecv {
         empty: e,
@@ -208,10 +208,10 @@ fn test_error_creation_methods() {
 
 #[test]
 fn test_error_partial_eq() {
-    let empty1 = BusError::try_recv_empty();
-    let empty2 = BusError::try_recv_empty();
-    let disconnected1 = BusError::try_recv_disconnected();
-    let disconnected2 = BusError::try_recv_disconnected();
+    let empty1 = BusError::message_queue_empty();
+    let empty2 = BusError::message_queue_empty();
+    let disconnected1 = BusError::topic_disconnected();
+    let disconnected2 = BusError::topic_disconnected();
 
     assert_eq!(empty1, empty2);
     assert_eq!(disconnected1, disconnected2);
@@ -220,14 +220,14 @@ fn test_error_partial_eq() {
 
 #[test]
 fn test_error_eq_reflexive() {
-    let error = BusError::try_recv_empty();
+    let error = BusError::message_queue_empty();
     assert_eq!(error, error);
 }
 
 #[test]
 fn test_error_eq_symmetric() {
-    let error1 = BusError::try_recv_empty();
-    let error2 = BusError::try_recv_empty();
+    let error1 = BusError::message_queue_empty();
+    let error2 = BusError::message_queue_empty();
 
     assert_eq!(error1, error2);
     assert_eq!(error2, error1);
@@ -235,9 +235,9 @@ fn test_error_eq_symmetric() {
 
 #[test]
 fn test_error_eq_transitive() {
-    let error1 = BusError::try_recv_empty();
-    let error2 = BusError::try_recv_empty();
-    let error3 = BusError::try_recv_empty();
+    let error1 = BusError::message_queue_empty();
+    let error2 = BusError::message_queue_empty();
+    let error3 = BusError::message_queue_empty();
 
     assert_eq!(error1, error2);
     assert_eq!(error2, error3);

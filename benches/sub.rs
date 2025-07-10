@@ -29,19 +29,19 @@ fn bench_subscriber_creation(c: &mut Criterion) {
     });
 }
 
-fn bench_try_recv_operations(c: &mut Criterion) {
-    c.bench_function("try_next_empty", |b| {
+fn bench_try_get_message_operations(c: &mut Criterion) {
+    c.bench_function("try_get_message_empty", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("try_empty");
             let mut subscriber = topic.subscribe();
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
 
-    c.bench_function("try_next_with_message", |b| {
+    c.bench_function("try_get_message_with_message", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("try_msg");
@@ -49,12 +49,12 @@ fn bench_try_recv_operations(c: &mut Criterion) {
 
             topic.publish("Test Message".to_string());
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
 
-    c.bench_function("try_next_with_transform", |b| {
+    c.bench_function("try_get_message_with_transform", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("try_transform");
@@ -62,16 +62,16 @@ fn bench_try_recv_operations(c: &mut Criterion) {
 
             topic.publish("test".to_string());
 
-            let result = subscriber.try_next_with(|msg| msg.len());
+            let result = subscriber.try_get_message_and_apply(|msg| msg.len());
             let _ = black_box(result);
         })
     });
 }
 
-fn bench_async_recv_operations(c: &mut Criterion) {
+fn bench_async_wait_for_message_operations(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
-    c.bench_function("next_with_message", |b| {
+    c.bench_function("wait_for_message_with_message", |b| {
         b.iter(|| {
             rt.block_on(async {
                 let bus = Bus::<String>::new();
@@ -80,13 +80,13 @@ fn bench_async_recv_operations(c: &mut Criterion) {
 
                 topic.publish(black_box("Hello World".to_string()));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
     });
 
-    c.bench_function("next_with_transform", |b| {
+    c.bench_function("wait_for_message_and_apply", |b| {
         b.iter(|| {
             rt.block_on(async {
                 let bus = Bus::<String>::new();
@@ -95,22 +95,22 @@ fn bench_async_recv_operations(c: &mut Criterion) {
 
                 topic.publish("hello world".to_string());
 
-                let length = subscriber.next_with(|msg| msg.len()).await.unwrap();
+                let length = subscriber.wait_for_message_and_apply(|msg| msg.len()).await.unwrap();
                 black_box(length);
             })
         })
     });
 
-    c.bench_function("recv_with_message", |b| {
+    c.bench_function("wait_for_message_alias", |b| {
         b.iter(|| {
             rt.block_on(async {
                 let bus = Bus::<String>::new();
-                let topic = bus.topic("recv_test");
+                let topic = bus.topic("wait_for_message_test");
                 let mut subscriber = topic.subscribe();
 
                 topic.publish("Test Message".to_string());
 
-                let message = subscriber.recv().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -172,7 +172,7 @@ fn bench_latest_operations(c: &mut Criterion) {
 fn bench_high_frequency_receiving(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
-    c.bench_function("high_frequency_next", |b| {
+    c.bench_function("high_frequency_wait_for_message", |b| {
         b.iter(|| {
             rt.block_on(async {
                 let bus = Bus::<String>::new();
@@ -183,7 +183,7 @@ fn bench_high_frequency_receiving(c: &mut Criterion) {
                     topic.publish(format!("Message {i}"));
                 }
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -193,7 +193,7 @@ fn bench_high_frequency_receiving(c: &mut Criterion) {
 fn bench_bytes_operations(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
-    c.bench_function("bytes_next", |b| {
+    c.bench_function("bytes_wait_for_message", |b| {
         b.iter(|| {
             rt.block_on(async {
                 let bus = Bus::<Bytes>::new();
@@ -203,13 +203,13 @@ fn bench_bytes_operations(c: &mut Criterion) {
                 let data = vec![1, 2, 3, 4, 5];
                 topic.publish_vec(black_box(data));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
     });
 
-    c.bench_function("bytes_try_next", |b| {
+    c.bench_function("bytes_try_get_message", |b| {
         b.iter(|| {
             let bus = Bus::<Bytes>::new();
             let topic = bus.topic("bytes_try");
@@ -218,14 +218,14 @@ fn bench_bytes_operations(c: &mut Criterion) {
             let data = vec![1, 2, 3, 4, 5];
             topic.publish_vec(black_box(data));
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
 }
 
 fn bench_subscriber_disconnect(c: &mut Criterion) {
-    c.bench_function("try_next_after_disconnect", |b| {
+    c.bench_function("try_get_message_after_disconnect", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("disconnect_test");
@@ -234,7 +234,7 @@ fn bench_subscriber_disconnect(c: &mut Criterion) {
             drop(topic);
             let _ = bus.remove_topic("disconnect_test");
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
@@ -273,14 +273,14 @@ fn bench_version_tracking(c: &mut Criterion) {
             let mut subscriber = topic.subscribe();
 
             topic.publish("First".to_string());
-            let result1 = subscriber.try_next();
+            let result1 = subscriber.try_get_message();
             let _ = black_box(result1);
 
-            let result2 = subscriber.try_next();
+            let result2 = subscriber.try_get_message();
             let _ = black_box(result2);
 
             topic.publish("Second".to_string());
-            let result3 = subscriber.try_next();
+            let result3 = subscriber.try_get_message();
             let _ = black_box(result3);
         })
     });
@@ -293,13 +293,13 @@ fn bench_concurrent_subscribers(c: &mut Criterion) {
 
     for num_threads in [2, 4, 8, 16].iter() {
         group.bench_with_input(
-            BenchmarkId::new("concurrent_recv", num_threads),
+            BenchmarkId::new("concurrent_wait_for_message", num_threads),
             num_threads,
             |b, &num_threads| {
                 b.iter(|| {
                     rt.block_on(async {
                         let bus = Arc::new(Bus::<String>::new());
-                        let topic = bus.topic("concurrent_recv");
+                        let topic = bus.topic("concurrent_wait_for_message");
                         let mut handles = Vec::new();
 
                         for i in 0..num_threads {
@@ -310,7 +310,7 @@ fn bench_concurrent_subscribers(c: &mut Criterion) {
                                     let mut subscriber = topic_clone.subscribe();
                                     topic_clone.publish(format!("Message {i}"));
 
-                                    let message = subscriber.next().await.unwrap();
+                                    let message = subscriber.wait_for_message().await.unwrap();
                                     black_box(message);
                                 })
                             });
@@ -333,8 +333,8 @@ criterion_group!(
     name = benches;
     config = configure_criterion();
     targets = bench_subscriber_creation,
-    bench_try_recv_operations,
-    bench_async_recv_operations,
+    bench_try_get_message_operations,
+    bench_async_wait_for_message_operations,
     bench_latest_operations,
     bench_high_frequency_receiving,
     bench_bytes_operations,

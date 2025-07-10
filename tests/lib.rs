@@ -12,7 +12,7 @@ async fn test_basic_pubsub_flow() {
 
     topic.publish("Hello".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Hello");
 }
 
@@ -26,7 +26,7 @@ async fn test_latest_only_semantics() {
     topic.publish("Second".to_string());
     topic.publish("Third".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Third");
 }
 
@@ -41,9 +41,9 @@ async fn test_multiple_subscribers() {
 
     topic.publish("Broadcast Message".to_string());
 
-    let msg1 = sub1.next().await.unwrap();
-    let msg2 = sub2.next().await.unwrap();
-    let msg3 = sub3.next().await.unwrap();
+    let msg1 = sub1.wait_for_message().await.unwrap();
+    let msg2 = sub2.wait_for_message().await.unwrap();
+    let msg3 = sub3.wait_for_message().await.unwrap();
 
     assert_eq!(msg1, "Broadcast Message");
     assert_eq!(msg2, "Broadcast Message");
@@ -120,7 +120,7 @@ async fn test_custom_message_types() {
 
     topic.publish(msg.clone());
 
-    let received = subscriber.next().await.unwrap();
+    let received = subscriber.wait_for_message().await.unwrap();
     assert_eq!(received, msg);
 }
 
@@ -133,7 +133,7 @@ async fn test_bytes_zero_copy() {
     let original_data = b"zero copy test data";
     topic.publish_slice(original_data);
 
-    let received = subscriber.next().await.unwrap();
+    let received = subscriber.wait_for_message().await.unwrap();
     assert_eq!(received.as_ref(), original_data);
 }
 
@@ -152,12 +152,12 @@ async fn test_async_timeout_scenarios() {
     let topic = bus.topic("timeout_test");
     let mut subscriber = topic.subscribe();
 
-    let timeout_result = timeout(Duration::from_millis(10), subscriber.next()).await;
+    let timeout_result = timeout(Duration::from_millis(10), subscriber.wait_for_message()).await;
     assert!(timeout_result.is_err());
 
     topic.publish("Finally!".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Finally!");
 }
 

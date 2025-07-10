@@ -54,19 +54,19 @@ fn test_subscriber_debug_format() {
 }
 
 #[tokio::test]
-async fn test_next_with_message() {
+async fn test_wait_for_message_with_message() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("next_test");
     let mut subscriber = topic.subscribe();
 
     topic.publish("Hello".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Hello");
 }
 
 #[tokio::test]
-async fn test_next_with_multiple_messages() {
+async fn test_wait_for_message_with_multiple_messages() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("multi_next");
     let mut subscriber = topic.subscribe();
@@ -75,19 +75,19 @@ async fn test_next_with_multiple_messages() {
     topic.publish("Second".to_string());
     topic.publish("Third".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Third"); // Latest only
 }
 
 #[tokio::test]
-async fn test_next_with_transformation() {
+async fn test_wait_for_message_with_transformation() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("transform_test");
     let mut subscriber = topic.subscribe();
 
     topic.publish("hello".to_string());
 
-    let length = subscriber.next_with(|msg| msg.len()).await.unwrap();
+    let length = subscriber.wait_for_message_and_apply(|msg| msg.len()).await.unwrap();
     assert_eq!(length, 5);
 }
 
@@ -99,7 +99,7 @@ async fn test_recv_alias() {
 
     topic.publish("Recv Test".to_string());
 
-    let message = subscriber.recv().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Recv Test");
 }
 
@@ -112,71 +112,71 @@ async fn test_recv_with_alias() {
     topic.publish("UPPERCASE".to_string());
 
     let lowercase = subscriber
-        .recv_with(|msg| msg.to_lowercase())
+        .wait_for_message_and_apply(|msg| msg.to_lowercase())
         .await
         .unwrap();
     assert_eq!(lowercase, "uppercase");
 }
 
 #[test]
-fn test_try_next_empty() {
+fn test_try_get_message_empty() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("try_empty");
     let mut subscriber = topic.subscribe();
 
-    let result = subscriber.try_next();
+    let result = subscriber.try_get_message();
     assert!(result.is_err());
     assert!(result.unwrap_err().is_empty());
 }
 
 #[test]
-fn test_try_next_with_message() {
+fn test_try_get_message_with_message() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("try_with_msg");
     let mut subscriber = topic.subscribe();
 
     topic.publish("Try Message".to_string());
 
-    let result = subscriber.try_next();
+    let result = subscriber.try_get_message();
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Some("Try Message".to_string()));
 }
 
 #[test]
-fn test_try_next_with_transformation() {
+fn test_try_get_message_with_transformation() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("try_transform");
     let mut subscriber = topic.subscribe();
 
     topic.publish("transform".to_string());
 
-    let result = subscriber.try_next_with(|msg| msg.to_uppercase());
+    let result = subscriber.try_get_message_and_apply(|msg| msg.to_uppercase());
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Some("TRANSFORM".to_string()));
 }
 
 #[test]
-fn test_try_recv_alias() {
+fn test_try_get_message_alias_alias() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("try_recv");
     let mut subscriber = topic.subscribe();
 
     topic.publish("Try Recv".to_string());
 
-    let result = subscriber.try_recv();
+    let result = subscriber.try_get_message();
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Some("Try Recv".to_string()));
 }
 
 #[test]
-fn test_try_recv_with_alias() {
+fn test_try_get_message_alias_with_alias() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("try_recv_with");
     let mut subscriber = topic.subscribe();
 
     topic.publish("test".to_string());
 
-    let result = subscriber.try_recv_with(|msg| msg.len());
+    let result = subscriber.try_get_message_and_apply(|msg| msg.len());
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), Some(4));
 }
@@ -236,7 +236,7 @@ fn test_has_latest_with_message() {
 }
 
 #[test]
-fn test_try_next_after_topic_drop() {
+fn test_try_get_message_after_topic_drop() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("drop_topic");
     let mut subscriber = topic.subscribe();
@@ -246,24 +246,24 @@ fn test_try_next_after_topic_drop() {
     let removed_count = bus.remove_topic("drop_topic");
     assert_eq!(removed_count, Some(1));
 
-    let result = subscriber.try_next();
+    let result = subscriber.try_get_message();
     assert!(result.is_err());
     assert!(result.unwrap_err().is_disconnected());
 }
 
 #[test]
-fn test_try_next_version_tracking() {
+fn test_try_get_message_version_tracking() {
     let bus = Bus::<String>::new();
     let topic = bus.topic("version_test");
     let mut subscriber = topic.subscribe();
 
     topic.publish("First".to_string());
 
-    let result1 = subscriber.try_next();
+    let result1 = subscriber.try_get_message();
     assert!(result1.is_ok());
     assert_eq!(result1.unwrap(), Some("First".to_string()));
 
-    let result2 = subscriber.try_next();
+    let result2 = subscriber.try_get_message();
     assert!(result2.is_err());
     assert!(result2.unwrap_err().is_empty());
 }
@@ -287,7 +287,7 @@ async fn test_subscriber_timeout() {
     let topic = bus.topic("timeout_test");
     let mut subscriber = topic.subscribe();
 
-    let result = timeout(Duration::from_millis(10), subscriber.next()).await;
+    let result = timeout(Duration::from_millis(10), subscriber.wait_for_message()).await;
     assert!(result.is_err()); // Timeout
 }
 
@@ -302,12 +302,12 @@ async fn test_subscriber_after_publish() {
 
     // Subscribing after publishing should NOT give us the previous message
     // This should timeout because no new messages are published
-    let result = timeout(Duration::from_millis(10), subscriber.next()).await;
+    let result = timeout(Duration::from_millis(10), subscriber.wait_for_message()).await;
     assert!(result.is_err()); // Should timeout
 
     // But if we publish a new message, the subscriber should receive it
     topic.publish("New Message".to_string());
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "New Message");
 }
 
@@ -352,8 +352,8 @@ fn test_subscriber_concurrent_access() {
 
 #[test]
 fn test_error_display() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     assert!(empty_error.to_string().contains("No message available"));
     assert!(
@@ -365,8 +365,8 @@ fn test_error_display() {
 
 #[test]
 fn test_error_is_methods() {
-    let empty_error = BusError::try_recv_empty();
-    let disconnected_error = BusError::try_recv_disconnected();
+    let empty_error = BusError::message_queue_empty();
+    let disconnected_error = BusError::topic_disconnected();
 
     assert!(empty_error.is_empty());
     assert!(!empty_error.is_disconnected());

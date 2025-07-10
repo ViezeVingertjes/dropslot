@@ -24,7 +24,7 @@
 //!
 //! topic.publish(Bytes::from("Hello, World!"));
 //!
-//! if let Some(message) = subscriber.next().await {
+//! if let Some(message) = subscriber.wait_for_message().await {
 //!     println!("Received: {:?}", message);
 //! }
 //! # }

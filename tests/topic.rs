@@ -101,7 +101,7 @@ async fn test_publish_and_receive() {
 
     topic.publish("Test Message".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Test Message");
 }
 
@@ -115,7 +115,7 @@ async fn test_latest_message_semantics() {
     topic.publish("Second".to_string());
     topic.publish("Latest".to_string());
 
-    let message = subscriber.next().await.unwrap();
+    let message = subscriber.wait_for_message().await.unwrap();
     assert_eq!(message, "Latest");
 }
 
@@ -130,9 +130,9 @@ async fn test_multiple_subscribers_same_message() {
 
     topic.publish("Broadcast".to_string());
 
-    let msg1 = sub1.next().await.unwrap();
-    let msg2 = sub2.next().await.unwrap();
-    let msg3 = sub3.next().await.unwrap();
+    let msg1 = sub1.wait_for_message().await.unwrap();
+    let msg2 = sub2.wait_for_message().await.unwrap();
+    let msg3 = sub3.wait_for_message().await.unwrap();
 
     assert_eq!(msg1, "Broadcast");
     assert_eq!(msg2, "Broadcast");
