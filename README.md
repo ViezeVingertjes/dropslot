@@ -1,4 +1,4 @@
-# DropSlot 🏗️
+# DropSlot
 
 [![Crates.io](https://img.shields.io/crates/v/dropslot.svg)](https://crates.io/crates/dropslot)
 [![Documentation](https://docs.rs/dropslot/badge.svg)](https://docs.rs/dropslot)
@@ -22,13 +22,13 @@ Add dropslot to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-dropslot = "0.1"
+dropslot = "0.2"
 ```
 
 ### Basic Usage
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use bytes::Bytes;
 
 #[tokio::main]
@@ -43,7 +43,7 @@ async fn main() {
     topic.publish(Bytes::from("Hello, World!"));
     
     // Receive the latest message
-    if let Some(message) = subscriber.next().await {
+    if let Some(message) = subscriber.wait_for_message().await {
         println!("Received: {:?}", message);
     }
 }
@@ -52,14 +52,14 @@ async fn main() {
 ### Performance Configurations
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use bytes::Bytes;
 
-// High throughput: optimized for many messages
-let ht_bus = Bus::<Bytes>::high_throughput();
+// High throughput: optimized for many topics (large capacity)
+let ht_bus = Bus::<Bytes>::with_capacity(64);
 
-// Low latency: optimized for speed
-let ll_bus = Bus::<Bytes>::low_latency();
+// Low latency: optimized for few topics (small capacity)
+let ll_bus = Bus::<Bytes>::with_capacity(8);
 
 // Custom capacity
 let custom_bus = Bus::<Bytes>::with_capacity(128);
@@ -112,7 +112,7 @@ DropSlot is designed for high-performance scenarios and delivers exceptional per
 ### Custom Message Types
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -135,13 +135,13 @@ topic.publish(event);
 ### Error Handling
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 let topic = bus.topic("events");
 let mut subscriber = topic.subscribe();
 
-match subscriber.try_next() {
+match subscriber.try_get_message() {
     Ok(Some(msg)) => println!("Received: {}", msg),
     Ok(None) => println!("No new message"),
     Err(e) if e.is_empty() => println!("No message available"),
@@ -153,7 +153,7 @@ match subscriber.try_next() {
 ### Multiple Subscribers
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 let topic = bus.topic("notifications");
@@ -170,7 +170,7 @@ topic.publish("Important update!".to_string());
 ### Topic Management
 
 ```rust
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 let bus = Bus::<String>::new();
 
@@ -215,6 +215,14 @@ DropSlot is perfect for:
 
 ## 🛠️ Features
 
+### Prelude
+
+For convenience, you can import all commonly used types with the prelude:
+
+```rust
+use dropslot::prelude::*; // Imports Bus, Topic, Sub, and BusError
+```
+
 ### Default Features
 
 - `bytes` - Zero-copy operations for `bytes::Bytes`
@@ -227,7 +235,7 @@ Enable features in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-dropslot = { version = "0.1", features = ["serde"] }
+dropslot = { version = "0.2", features = ["serde"] }
 ```
 
 ## 📈 Benchmarks

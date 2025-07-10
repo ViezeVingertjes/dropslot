@@ -21,7 +21,7 @@ fn bench_basic_pubsub(c: &mut Criterion) {
 
                 topic.publish(black_box("Hello".to_string()));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -42,7 +42,7 @@ fn bench_latest_only_semantics(c: &mut Criterion) {
                     topic.publish(format!("Message {i}"));
                 }
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -63,7 +63,7 @@ fn bench_multiple_subscribers(c: &mut Criterion) {
                 topic.publish("Broadcast Message".to_string());
 
                 for sub in &mut subs {
-                    let message = sub.next().await.unwrap();
+                    let message = sub.wait_for_message().await.unwrap();
                     black_box(message);
                 }
             })
@@ -85,7 +85,7 @@ fn bench_high_frequency_publishing(c: &mut Criterion) {
                     topic.publish(format!("Message {i}"));
                 }
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -105,7 +105,7 @@ fn bench_bytes_operations(c: &mut Criterion) {
                 let data = vec![1, 2, 3, 4, 5];
                 topic.publish_vec(black_box(data));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -137,7 +137,7 @@ fn bench_concurrent_access(c: &mut Criterion) {
                                 // Use tokio's block_on in thread
                                 let rt = Runtime::new().unwrap();
                                 rt.block_on(async {
-                                    let message = subscriber.next().await.unwrap();
+                                    let message = subscriber.wait_for_message().await.unwrap();
                                     black_box(message);
                                 })
                             });
@@ -187,18 +187,18 @@ fn bench_subscriber_operations(c: &mut Criterion) {
         })
     });
 
-    c.bench_function("try_next_empty", |b| {
+    c.bench_function("try_get_message_empty", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("test_topic");
             let mut subscriber = topic.subscribe();
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
 
-    c.bench_function("try_next_with_message", |b| {
+    c.bench_function("try_get_message_with_message", |b| {
         b.iter(|| {
             let bus = Bus::<String>::new();
             let topic = bus.topic("test_topic");
@@ -206,7 +206,7 @@ fn bench_subscriber_operations(c: &mut Criterion) {
 
             topic.publish("Test Message".to_string());
 
-            let result = subscriber.try_next();
+            let result = subscriber.try_get_message();
             let _ = black_box(result);
         })
     });
@@ -218,13 +218,13 @@ fn bench_performance_configurations(c: &mut Criterion) {
     c.bench_function("high_throughput_config", |b| {
         b.iter(|| {
             _rt.block_on(async {
-                let bus = Bus::<String>::high_throughput();
+                let bus = Bus::<String>::with_capacity(64);
                 let topic = bus.topic("test");
                 let mut subscriber = topic.subscribe();
 
                 topic.publish(black_box("Test".to_string()));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -233,13 +233,13 @@ fn bench_performance_configurations(c: &mut Criterion) {
     c.bench_function("low_latency_config", |b| {
         b.iter(|| {
             _rt.block_on(async {
-                let bus = Bus::<String>::low_latency();
+                let bus = Bus::<String>::with_capacity(8);
                 let topic = bus.topic("test");
                 let mut subscriber = topic.subscribe();
 
                 topic.publish(black_box("Test".to_string()));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })
@@ -254,7 +254,7 @@ fn bench_performance_configurations(c: &mut Criterion) {
 
                 topic.publish(black_box("Test".to_string()));
 
-                let message = subscriber.next().await.unwrap();
+                let message = subscriber.wait_for_message().await.unwrap();
                 black_box(message);
             })
         })

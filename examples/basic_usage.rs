@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use dropslot::Bus;
+use dropslot::prelude::*;
 
 #[tokio::main]
 async fn main() {
@@ -12,7 +12,7 @@ async fn main() {
     events_topic.publish(Bytes::from("Hello"));
     events_topic.publish(Bytes::from("World"));
 
-    if let Some(message) = subscriber.next().await {
+    if let Some(message) = subscriber.wait_for_message().await {
         println!("Received: {message:?}");
     }
 

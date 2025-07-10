@@ -55,38 +55,6 @@ where
         }
     }
 
-    /// Creates a Bus optimized for high throughput scenarios.
-    ///
-    /// This configuration uses a larger initial capacity (64) to reduce
-    /// hash map resizing overhead when dealing with many topics.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::high_throughput();
-    /// // Optimized for scenarios with many topics
-    /// ```
-    #[inline]
-    pub fn high_throughput() -> Self {
-        Self::with_capacity(64)
-    }
-
-    /// Creates a Bus optimized for low latency scenarios.
-    ///
-    /// This configuration uses a smaller initial capacity (8) to minimize
-    /// memory usage and improve cache locality for applications with few topics.
-    ///
-    /// # Examples
-    /// ```
-    /// # use dropslot::Bus;
-    /// let bus = Bus::<String>::low_latency();
-    /// // Optimized for scenarios with few topics
-    /// ```
-    #[inline]
-    pub fn low_latency() -> Self {
-        Self::with_capacity(8)
-    }
-
     /// Gets existing topic or creates a new one.
     ///
     /// # Examples
@@ -345,45 +313,33 @@ mod tests {
     }
 
     #[test]
-    fn test_cleanup_saturating_add() {
-        let result = usize::MAX.saturating_add(1);
-        assert_eq!(result, usize::MAX);
-    }
-
-    #[test]
-    fn test_get_topic_with_prefetch_hit() {
+    fn test_get_topic_with_prefetch() {
         let bus = Bus::<String>::new();
         let _topic = bus.topic("test");
 
-        let key: Arc<str> = "test".into();
-        let retrieved = bus.get_topic_with_prefetch(&key);
+        let hit_key: Arc<str> = "test".into();
+        let retrieved = bus.get_topic_with_prefetch(&hit_key);
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap().name(), "test");
-    }
 
-    #[test]
-    fn test_get_topic_with_prefetch_miss() {
-        let bus = Bus::<String>::new();
-        let key: Arc<str> = "nonexistent".into();
-        let retrieved = bus.get_topic_with_prefetch(&key);
+        let miss_key: Arc<str> = "nonexistent".into();
+        let retrieved = bus.get_topic_with_prefetch(&miss_key);
         assert!(retrieved.is_none());
     }
 
     #[test]
-    fn test_create_topic_with_race_protection_vacant() {
+    fn test_create_topic_with_race_protection() {
         let bus = Bus::<String>::new();
-        let key: Arc<str> = "new_topic".into();
-        let topic = bus.create_topic_with_race_protection(key.clone(), "new_topic".to_string());
+
+        let vacant_key: Arc<str> = "new_topic".into();
+        let topic =
+            bus.create_topic_with_race_protection(vacant_key.clone(), "new_topic".to_string());
         assert_eq!(topic.name(), "new_topic");
-    }
 
-    #[test]
-    fn test_create_topic_with_race_protection_occupied() {
-        let bus = Bus::<String>::new();
         let _existing_topic = bus.topic("existing");
-
-        let key: Arc<str> = "existing".into();
-        let topic = bus.create_topic_with_race_protection(key.clone(), "existing".to_string());
+        let occupied_key: Arc<str> = "existing".into();
+        let topic =
+            bus.create_topic_with_race_protection(occupied_key.clone(), "existing".to_string());
         assert_eq!(topic.name(), "existing");
     }
 

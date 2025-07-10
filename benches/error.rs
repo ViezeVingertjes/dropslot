@@ -8,14 +8,14 @@ use common::configure_criterion;
 fn bench_error_creation(c: &mut Criterion) {
     c.bench_function("error_empty", |b| {
         b.iter(|| {
-            let error = BusError::try_recv_empty();
+            let error = BusError::message_queue_empty();
             black_box(error);
         })
     });
 
     c.bench_function("error_disconnected", |b| {
         b.iter(|| {
-            let error = BusError::try_recv_disconnected();
+            let error = BusError::topic_disconnected();
             black_box(error);
         })
     });
@@ -23,7 +23,7 @@ fn bench_error_creation(c: &mut Criterion) {
 
 fn bench_error_checking(c: &mut Criterion) {
     c.bench_function("is_empty_check", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let is_empty = error.is_empty();
@@ -32,7 +32,7 @@ fn bench_error_checking(c: &mut Criterion) {
     });
 
     c.bench_function("is_disconnected_check", |b| {
-        let error = BusError::try_recv_disconnected();
+        let error = BusError::topic_disconnected();
 
         b.iter(|| {
             let is_disconnected = error.is_disconnected();
@@ -41,7 +41,7 @@ fn bench_error_checking(c: &mut Criterion) {
     });
 
     c.bench_function("is_empty_on_disconnected", |b| {
-        let error = BusError::try_recv_disconnected();
+        let error = BusError::topic_disconnected();
 
         b.iter(|| {
             let is_empty = error.is_empty();
@@ -50,7 +50,7 @@ fn bench_error_checking(c: &mut Criterion) {
     });
 
     c.bench_function("is_disconnected_on_empty", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let is_disconnected = error.is_disconnected();
@@ -61,7 +61,7 @@ fn bench_error_checking(c: &mut Criterion) {
 
 fn bench_error_display(c: &mut Criterion) {
     c.bench_function("display_empty", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let display = error.to_string();
@@ -70,7 +70,7 @@ fn bench_error_display(c: &mut Criterion) {
     });
 
     c.bench_function("display_disconnected", |b| {
-        let error = BusError::try_recv_disconnected();
+        let error = BusError::topic_disconnected();
 
         b.iter(|| {
             let display = error.to_string();
@@ -79,7 +79,7 @@ fn bench_error_display(c: &mut Criterion) {
     });
 
     c.bench_function("format_empty", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let formatted = format!("{error}");
@@ -88,7 +88,7 @@ fn bench_error_display(c: &mut Criterion) {
     });
 
     c.bench_function("debug_empty", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let debug = format!("{error:?}");
@@ -99,7 +99,7 @@ fn bench_error_display(c: &mut Criterion) {
 
 fn bench_error_clone(c: &mut Criterion) {
     c.bench_function("clone_empty", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let cloned = error.clone();
@@ -108,7 +108,7 @@ fn bench_error_clone(c: &mut Criterion) {
     });
 
     c.bench_function("clone_disconnected", |b| {
-        let error = BusError::try_recv_disconnected();
+        let error = BusError::topic_disconnected();
 
         b.iter(|| {
             let cloned = error.clone();
@@ -119,8 +119,8 @@ fn bench_error_clone(c: &mut Criterion) {
 
 fn bench_error_equality(c: &mut Criterion) {
     c.bench_function("equality_same", |b| {
-        let error1 = BusError::try_recv_empty();
-        let error2 = BusError::try_recv_empty();
+        let error1 = BusError::message_queue_empty();
+        let error2 = BusError::message_queue_empty();
 
         b.iter(|| {
             let equal = error1 == error2;
@@ -129,8 +129,8 @@ fn bench_error_equality(c: &mut Criterion) {
     });
 
     c.bench_function("equality_different", |b| {
-        let error1 = BusError::try_recv_empty();
-        let error2 = BusError::try_recv_disconnected();
+        let error1 = BusError::message_queue_empty();
+        let error2 = BusError::topic_disconnected();
 
         b.iter(|| {
             let equal = error1 == error2;
@@ -139,8 +139,8 @@ fn bench_error_equality(c: &mut Criterion) {
     });
 
     c.bench_function("inequality", |b| {
-        let error1 = BusError::try_recv_empty();
-        let error2 = BusError::try_recv_disconnected();
+        let error1 = BusError::message_queue_empty();
+        let error2 = BusError::topic_disconnected();
 
         b.iter(|| {
             let not_equal = error1 != error2;
@@ -152,14 +152,14 @@ fn bench_error_equality(c: &mut Criterion) {
 fn bench_error_conversion(c: &mut Criterion) {
     c.bench_function("from_empty", |b| {
         b.iter(|| {
-            let error: BusError = BusError::try_recv_empty();
+            let error: BusError = BusError::message_queue_empty();
             black_box(error);
         })
     });
 
     c.bench_function("from_disconnected", |b| {
         b.iter(|| {
-            let error: BusError = BusError::try_recv_disconnected();
+            let error: BusError = BusError::topic_disconnected();
             black_box(error);
         })
     });
@@ -167,7 +167,7 @@ fn bench_error_conversion(c: &mut Criterion) {
 
 fn bench_error_std_error(c: &mut Criterion) {
     c.bench_function("std_error_display", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let display = error.to_string();
@@ -176,7 +176,7 @@ fn bench_error_std_error(c: &mut Criterion) {
     });
 
     c.bench_function("std_error_source", |b| {
-        let error = BusError::try_recv_empty();
+        let error = BusError::message_queue_empty();
 
         b.iter(|| {
             let source = std::error::Error::source(&error);
@@ -188,9 +188,9 @@ fn bench_error_std_error(c: &mut Criterion) {
 fn bench_error_patterns(c: &mut Criterion) {
     c.bench_function("pattern_matching", |b| {
         let errors = vec![
-            BusError::try_recv_empty(),
-            BusError::try_recv_disconnected(),
-            BusError::try_recv_empty(),
+            BusError::message_queue_empty(),
+            BusError::topic_disconnected(),
+            BusError::message_queue_empty(),
         ];
 
         b.iter(|| {
@@ -216,10 +216,10 @@ fn bench_error_patterns(c: &mut Criterion) {
 fn bench_error_categorization(c: &mut Criterion) {
     c.bench_function("categorize_errors", |b| {
         let errors = vec![
-            BusError::try_recv_empty(),
-            BusError::try_recv_disconnected(),
-            BusError::try_recv_empty(),
-            BusError::try_recv_disconnected(),
+            BusError::message_queue_empty(),
+            BusError::topic_disconnected(),
+            BusError::message_queue_empty(),
+            BusError::topic_disconnected(),
         ];
 
         b.iter(|| {
@@ -249,14 +249,14 @@ fn bench_error_result_patterns(c: &mut Criterion) {
 
     c.bench_function("unwrap_err_empty", |b| {
         b.iter(|| {
-            let error = BusError::try_recv_empty();
+            let error = BusError::message_queue_empty();
             black_box(error);
         })
     });
 
     c.bench_function("unwrap_err_disconnected", |b| {
         b.iter(|| {
-            let error = BusError::try_recv_disconnected();
+            let error = BusError::topic_disconnected();
             black_box(error);
         })
     });
@@ -265,7 +265,7 @@ fn bench_error_result_patterns(c: &mut Criterion) {
 fn bench_error_handling_patterns(c: &mut Criterion) {
     c.bench_function("error_handling", |b| {
         b.iter(|| {
-            let result: Result<String, BusError> = Err(BusError::try_recv_empty());
+            let result: Result<String, BusError> = Err(BusError::message_queue_empty());
 
             let handled = match result {
                 Ok(value) => format!("Got: {value}"),

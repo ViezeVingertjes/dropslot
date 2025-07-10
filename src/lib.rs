@@ -13,7 +13,7 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
 //! # #[tokio::main]
@@ -24,7 +24,7 @@
 //!
 //! topic.publish(Bytes::from("Hello, World!"));
 //!
-//! if let Some(message) = subscriber.next().await {
+//! if let Some(message) = subscriber.wait_for_message().await {
 //!     println!("Received: {:?}", message);
 //! }
 //! # }
@@ -33,20 +33,20 @@
 //! ## Performance Configurations
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
-//! // High throughput: larger initial capacity
-//! let ht_bus = Bus::<Bytes>::high_throughput();
+//! // High throughput: larger initial capacity (optimized for many topics)
+//! let ht_bus = Bus::<Bytes>::with_capacity(64);
 //!
-//! // Low latency: smaller initial capacity
-//! let ll_bus = Bus::<Bytes>::low_latency();
+//! // Low latency: smaller initial capacity (optimized for few topics)
+//! let ll_bus = Bus::<Bytes>::with_capacity(8);
 //! ```
 //!
 //! ## Zero-Copy Bytes
 //!
 //! ```rust
-//! use dropslot::Bus;
+//! use dropslot::prelude::*;
 //! use bytes::Bytes;
 //!
 //! let bus = Bus::<Bytes>::new();
@@ -56,6 +56,7 @@
 
 pub mod bus;
 pub mod error;
+pub mod prelude;
 pub mod sub;
 pub mod topic;
 

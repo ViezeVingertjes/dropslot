@@ -124,10 +124,21 @@ where
 
     #[inline(always)]
     pub(crate) fn increment_version(&self) {
-        let current = self.version.load(std::sync::atomic::Ordering::Relaxed);
-        if current < u64::MAX {
-            self.version
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let mut current = self.version.load(std::sync::atomic::Ordering::Relaxed);
+        loop {
+            if current == u64::MAX {
+                break;
+            }
+
+            match self.version.compare_exchange_weak(
+                current,
+                current + 1,
+                std::sync::atomic::Ordering::Relaxed,
+                std::sync::atomic::Ordering::Relaxed,
+            ) {
+                Ok(_) => break,
+                Err(actual) => current = actual,
+            }
         }
     }
 
@@ -197,22 +208,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_version_overflow_protection() {
-        let topic = Topic::<String>::new("test".to_string());
-
-        topic.set_version_for_test(u64::MAX);
-
-        let version_before = topic.get_current_version();
-        assert_eq!(version_before, u64::MAX);
-
-        topic.increment_version();
-
-        let version_after = topic.get_current_version();
-        assert_eq!(version_after, u64::MAX);
-    }
-
-    #[test]
-    fn test_normal_version_increment() {
+    fn test_version_increment_with_overflow_protection() {
         let topic = Topic::<String>::new("test".to_string());
 
         let version_before = topic.get_current_version();
@@ -222,5 +218,40 @@ mod tests {
 
         let version_after = topic.get_current_version();
         assert_eq!(version_after, 1);
+
+        topic.set_version_for_test(u64::MAX);
+
+        let version_at_max = topic.get_current_version();
+        assert_eq!(version_at_max, u64::MAX);
+
+        topic.increment_version();
+
+        let version_after_max = topic.get_current_version();
+        assert_eq!(version_after_max, u64::MAX);
+    }
+
+    #[test]
+    fn test_concurrent_version_increment_near_max() {
+        use std::sync::Arc;
+        use std::thread;
+
+        let topic = Arc::new(Topic::<String>::new("test".to_string()));
+        topic.set_version_for_test(u64::MAX - 100);
+
+        let mut handles = vec![];
+        for _ in 0..200 {
+            let topic_clone = topic.clone();
+            let handle = thread::spawn(move || {
+                topic_clone.increment_version();
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        let final_version = topic.get_current_version();
+        assert_eq!(final_version, u64::MAX);
     }
 }
